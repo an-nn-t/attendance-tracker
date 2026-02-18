@@ -4,16 +4,16 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // url = ...  <-- この行を削除してください！
 }
 
 // ユーザー（学生および管理者）
 model User {
   id             String       @id @default(uuid())
-  studentNumber  String       @unique // 出席番号またはID
+  studentNumber  String       @unique
   password       String
-  name           String       // ニックネーム可
-  role           String       @default("STUDENT") // "ADMIN" or "STUDENT"
+  name           String
+  role           String       @default("STUDENT")
   
   attendances    Attendance[]
   scores         Score[]
@@ -23,13 +23,12 @@ model User {
 model Subject {
   id              String   @id @default(uuid())
   name            String
-  units           Int      // 単位数
-  isStudyCredit   Boolean  @default(false) // 学修単位フラグ
+  units           Int
+  isStudyCredit   Boolean  @default(false)
   
-  // 授業数管理
-  baseTotalClasses Int     // 基本授業数
-  cancelledClasses Int     @default(0) // 休講回数
-  makeupClasses    Int     @default(0) // 補講回数
+  baseTotalClasses Int
+  cancelledClasses Int     @default(0)
+  makeupClasses    Int     @default(0)
 
   attendances     Attendance[]
   scores          Score[]

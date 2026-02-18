@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 
-// ここで直接クライアントを作成（importエラー回避のため）
-const prisma = new PrismaClient();
+// ここを修正：接続先URLを明示的に渡す
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DATABASE_URL ?? "file:./dev.db",
+});
 
 async function main() {
   console.log("Seeding started...");
@@ -47,7 +49,6 @@ async function main() {
   ];
 
   for (const sub of subjectsData) {
-    // 1単位15コマ計算。学修単位なら半分(切り上げ)
     let total = sub.units * 15;
     if (sub.isStudyCredit) total = Math.ceil(total / 2);
 
