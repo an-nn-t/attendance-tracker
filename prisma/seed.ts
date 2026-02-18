@@ -1,11 +1,12 @@
-import { PrismaClient } from "../src/generated/prisma"; // 相対パスで指定
+import { PrismaClient } from "@prisma/client";
 
+// ここで直接クライアントを作成（importエラー回避のため）
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding started...");
 
-  // データのリセット
+  // 既存データの削除
   try {
     await prisma.attendance.deleteMany();
     await prisma.score.deleteMany();
@@ -13,10 +14,10 @@ async function main() {
     await prisma.subject.deleteMany();
     await prisma.user.deleteMany();
   } catch (e) {
-    console.log("No data to delete or database not initialized.");
+    // テーブルが存在しない場合は無視
   }
 
-  // 1. 管理者作成
+  // 1. 管理者作成 (ID: admin, Pass: admin)
   await prisma.user.create({
     data: {
       studentNumber: "admin",
@@ -26,7 +27,7 @@ async function main() {
     },
   });
 
-  // 2. 生徒作成 (出席番号 1~5)
+  // 2. 生徒作成 (No.1 ~ No.5)
   for (let i = 1; i <= 5; i++) {
     await prisma.user.create({
       data: {
@@ -46,6 +47,7 @@ async function main() {
   ];
 
   for (const sub of subjectsData) {
+    // 1単位15コマ計算。学修単位なら半分(切り上げ)
     let total = sub.units * 15;
     if (sub.isStudyCredit) total = Math.ceil(total / 2);
 

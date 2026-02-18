@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite" // Vercelデプロイ時は "postgresql" に変更
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // ユーザー（学生および管理者）
@@ -24,17 +24,12 @@ model Subject {
   id              String   @id @default(uuid())
   name            String
   units           Int      // 単位数
-  isStudyCredit   Boolean  @default(false) // 学修単位（授業数が半分になる等のフラグ）
+  isStudyCredit   Boolean  @default(false) // 学修単位フラグ
   
   // 授業数管理
-  baseTotalClasses Int     // 基本授業数（自動計算または手動）
+  baseTotalClasses Int     // 基本授業数
   cancelledClasses Int     @default(0) // 休講回数
   makeupClasses    Int     @default(0) // 補講回数
-
-  // 成績評価基準
-  dailyWeight     Int      @default(0)   // 平常点割合 (%)
-  testWeight      Int      @default(100) // テスト点割合 (%)
-  passScore       Int      @default(60)  // 合格点
 
   attendances     Attendance[]
   scores          Score[]
@@ -52,24 +47,24 @@ model Attendance {
   subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 }
 
-// テスト定義（中間・期末など）
+// テスト定義
 model Exam {
   id        String  @id @default(uuid())
   subjectId String
-  name      String  // "中間テスト" など
+  name      String
   maxScore  Int     @default(100)
   
   subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   scores    Score[]
 }
 
-// テストの点数記録
+// テストの点数
 model Score {
   id        String  @id @default(uuid())
   userId    String
-  examId    String? // テストの点数用
-  subjectId String  // 平常点等の管理用(今回は簡易化のためExam経由推奨だがSubject直結も可)
-  value     Int     // 点数
+  examId    String?
+  subjectId String
+  value     Int
 
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   exam      Exam?   @relation(fields: [examId], references: [id], onDelete: Cascade)
