@@ -1,14 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 
-// ここを修正：接続先URLを明示的に渡す
 const prisma = new PrismaClient({
-  datasourceUrl: process.env.DATABASE_URL ?? "file:./dev.db",
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL ?? "file:./dev.db",
+    },
+  },
 });
 
 async function main() {
   console.log("Seeding started...");
 
-  // 既存データの削除
   try {
     await prisma.attendance.deleteMany();
     await prisma.score.deleteMany();
@@ -16,10 +18,9 @@ async function main() {
     await prisma.subject.deleteMany();
     await prisma.user.deleteMany();
   } catch (e) {
-    // テーブルが存在しない場合は無視
+    // 無視
   }
 
-  // 1. 管理者作成 (ID: admin, Pass: admin)
   await prisma.user.create({
     data: {
       studentNumber: "admin",
@@ -29,7 +30,6 @@ async function main() {
     },
   });
 
-  // 2. 生徒作成 (No.1 ~ No.5)
   for (let i = 1; i <= 5; i++) {
     await prisma.user.create({
       data: {
@@ -41,7 +41,6 @@ async function main() {
     });
   }
 
-  // 3. 科目作成
   const subjectsData = [
     { name: "数学II", units: 2, isStudyCredit: false },
     { name: "物理実験", units: 1, isStudyCredit: true },

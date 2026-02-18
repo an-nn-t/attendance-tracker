@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  // url = ...  <-- この行を削除してください！
 }
 
 // ユーザー（学生および管理者）
