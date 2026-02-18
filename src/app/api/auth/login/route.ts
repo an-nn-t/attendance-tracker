@@ -1,22 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "../../../../lib/prisma"; // 共通のクライアントを使用
 
 export const POST = async (req: NextRequest) => {
   try {
     const { id, password } = await req.json();
 
-    // 簡易的な認証 (本来はDBなどで管理すべき)
-    // ID: admin, Password: password
-    if (id === "admin" && password === "password") {
+    const user = await prisma.user.findUnique({
+      where: { studentNumber: id },
+    });
+
+    if (user && user.password === password) {
       const response = NextResponse.json(
-        { message: "ログイン成功" },
+        { message: "ログイン成功", role: user.role, userId: user.id },
         { status: 200 },
       );
 
-      // クッキーを設定 (有効期限は1日とする)
-      // httpOnly: true にすることでJavaScriptからのアクセスを防ぐ
-      response.cookies.set("token", "admin-token", {
+      const tokenData = JSON.stringify({
+        id: user.id,
+        role: user.role,
+        name: user.name,
+        studentNumber: user.studentNumber,
+      });
+
+      response.cookies.set("token", tokenData, {
         httpOnly: true,
-        maxAge: 60 * 60 * 24, // 1日
+        maxAge: 60 * 60 * 24 * 7,
         path: "/",
       });
 
@@ -30,7 +38,7 @@ export const POST = async (req: NextRequest) => {
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "ログイン処理に失敗しました" },
+      { error: "エラーが発生しました" },
       { status: 500 },
     );
   }
