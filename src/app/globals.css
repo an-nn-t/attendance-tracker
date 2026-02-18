@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@layer base {
+  .markdown-content h1 {
+    @apply mt-6 mb-4 text-3xl font-bold border-b border-sky-100 pb-2;
+  }
+  .markdown-content h2 {
+    @apply mt-6 mb-4 text-2xl font-bold border-b border-sky-100 pb-1;
+  }
+  .markdown-content h3 {
+    @apply mt-4 mb-2 text-xl font-bold;
+  }
+  .markdown-content p {
+    @apply mb-4;
+  }
+  .markdown-content ul {
+    @apply mb-4 ml-6 list-disc;
+  }
+  .markdown-content ol {
+    @apply mb-4 ml-6 list-decimal;
+  }
+  .markdown-content li {
+    @apply mb-1;
+  }
+  .markdown-content blockquote {
+    @apply border-l-4 border-sky-200 pl-4 italic text-slate-500 my-4;
+  }
+  .markdown-content code {
+    @apply rounded bg-slate-100 px-1 py-0.5 font-mono text-sm;
+  }
+  .markdown-content pre {
+    @apply mb-4 overflow-x-auto rounded-lg bg-slate-800 p-4 text-white font-mono text-sm;
+  }
+  .markdown-content pre code {
+    @apply p-0 bg-transparent text-white;
+  }
+  .markdown-content a {
+    @apply text-sky-500 underline hover:text-sky-600;
+  }
+
+  /* サマリー（一覧）用の調整 */
+  .markdown-content.summary h1,
+  .markdown-content.summary h2,
+  .markdown-content.summary h3 {
+    @apply text-base font-bold border-none mb-1 mt-0 pb-0;
+  }
+  .markdown-content.summary p {
+    @apply mb-1;
+  }
+}
