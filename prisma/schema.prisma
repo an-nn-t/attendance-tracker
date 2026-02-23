@@ -3,68 +3,63 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// ユーザー（学生および管理者）
+// ユーザー（生徒・管理者）
 model User {
-  id             String       @id @default(uuid())
-  studentNumber  String       @unique
-  password       String
-  name           String
-  role           String       @default("STUDENT")
-  
-  attendances    Attendance[]
-  scores         Score[]
+  id           String      @id @default(uuid())
+  attendanceNo Int         @unique // 出席番号（ログインIDとして使用）
+  name         String      // 名前（ニックネーム可）
+  password     String      // パスワード（ハッシュ化して保存）
+  role         Role        @default(STUDENT) // 生徒か管理者か
+  absences     Absence[]   // このユーザーの欠席記録
+  testScores   TestScore[] // このユーザーのテスト点数
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
-// 科目
+enum Role {
+  STUDENT // 生徒
+  ADMIN   // 管理者
+}
+
+// 科目（管理者が登録）
 model Subject {
-  id              String   @id @default(uuid())
-  name            String
-  units           Int
-  isStudyCredit   Boolean  @default(false)
-  
-  baseTotalClasses Int
-  cancelledClasses Int     @default(0)
-  makeupClasses    Int     @default(0)
-
-  attendances     Attendance[]
-  scores          Score[]
-  exams           Exam[]
+  id            String      @id @default(uuid())
+  name          String      // 科目名
+  credits       Int         // 単位数
+  isGakushu     Boolean     @default(false) // 学修単位かどうか
+  canceledCount Int         @default(0)     // 休講回数
+  makeupCount   Int         @default(0)     // 補講回数
+  absences      Absence[]   // この科目の欠席記録
+  testScores    TestScore[] // この科目のテスト点数
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
-// 欠席記録
-model Attendance {
+// 欠席記録（生徒が記録）
+model Absence {
   id        String   @id @default(uuid())
-  userId    String
-  subjectId String
-  date      DateTime @default(now())
-  
+  date      DateTime // 欠席した日
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
   subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-}
-
-// テスト定義
-model Exam {
-  id        String  @id @default(uuid())
   subjectId String
-  name      String
-  maxScore  Int     @default(100)
-  
-  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  scores    Score[]
+  createdAt DateTime @default(now())
 }
 
 // テストの点数
-model Score {
-  id        String  @id @default(uuid())
+model TestScore {
+  id        String   @id @default(uuid())
+  term      String   // 「前期中間」「前期期末」などのテストの種類
+  score     Int      // 取った点数
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  examId    String?
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   subjectId String
-  value     Int
-
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  exam      Exam?   @relation(fields: [examId], references: [id], onDelete: Cascade)
-  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -1,125 +1,36 @@
-# Next.js Blog App
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Next.js 15 (App Router) と Prisma (SQLite) を使用して構築されたブログアプリケーションです。
-記事の閲覧、カテゴリによるフィルタリング、および管理者向けの記事作成・編集・削除機能（CMS）を備えています。
+## Getting Started
 
-## 機能
-
-- **公開ページ**
-  - 記事一覧表示
-  - 記事詳細表示
-  - カテゴリ別記事一覧
-  - Markdown 形式での記事レンダリング
-
-  ![alt text](img/home.png)
-
-- **管理者ページ (`/admin`)**
-  - ダッシュボード（記事・カテゴリ管理）
-  - 記事の作成・編集・削除
-  - カテゴリの作成・編集・削除
-  - 画像アップロード機能
-  - 認証機能（ログイン/ログアウト）
-
-- **ログイン画面 (`/login`)**
-  ![alt text](img/ログイン画面.png)
-
-- **投稿記事管理画面 (`/admin/posts`)**
-  ![alt text](img/記事投稿画面.png)
-
-- **カテゴリ編集画面 (`/admin/categories`)**
-  ![alt text](img/カテゴリ画面.png)
-
-- **投稿編集画面 (`/admin/posts/[id]`)**
-  ![alt text](img/編集画面.png)
-
-## 🛠️ 技術スタック
-
-- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
-- **Language:** [TypeScript](https://www.typescriptlang.org/)
-- **Database:** SQLite
-- **ORM:** [Prisma](https://www.prisma.io/)
-- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
-- **Icons:** [FontAwesome](https://fontawesome.com/)
-- **Markdown:** [Marked](https://github.com/markedjs/marked) + [DOMPurify](https://github.com/cure53/DOMPurify)
-
-## セットアップ手順
-
-### 1. リポジトリのクローンと依存関係のインストール
-
-```bash
-git clone <repository-url>
-cd next-blog-app
-npm install
-```
-
-### 2. 環境変数の設定
-
-プロジェクトルートに `.env` ファイルを作成し、必要な環境変数を設定してください（必要な場合）。
-※ SQLiteを使用しているため、デフォルト設定で動作する場合はスキップ可能です。
-
-### 3. データベースのセットアップ
-
-Prismaを使用してSQLiteデータベースを初期化し、シードデータを投入します。
-
-```bash
-# データベースのプッシュ（スキーマの適用）
-npx prisma db push
-
-# Prismaクライアントの生成
-npx prisma generate
-
-# シードデータの投入（初期データ）
-npx prisma db seed
-```
-
-### 4. 開発サーバーの起動
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-ブラウザで `http://localhost:3000` にアクセスしてください。
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## データベース開発フロー
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-`prisma/schema.prisma` を変更した場合の手順は以下の通りです：
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-1. 開発サーバー (`npm run dev`) や Prisma Studio を停止する。
-2. `dev.db` ファイルを削除する（SQLiteの場合、競合を避けるためリセット推奨）。
-3. データベースに変更を反映：
-   ```bash
-   npx prisma db push
-   ```
-4. クライアントを再生成：
-   ```bash
-   npx prisma generate
-   ```
-5. シードデータを再投入：
-   ```bash
-   npx prisma db seed
-   ```
+## Learn More
 
-## 利用可能なスクリプト
+To learn more about Next.js, take a look at the following resources:
 
-- `npm run dev`: 開発サーバーを起動します（Turbopack有効）。
-- `npm run build`: 本番用にアプリケーションをビルドします。
-- `npm start`: ビルドされたアプリケーションを起動します。
-- `npm run lint`: ESLintを実行してコードをチェックします。
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## ディレクトリ構造
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-```
-src/
-├── app/                 # App Router ページコンポーネント
-│   ├── (public)/        # 公開用ページ (Home, About, Post詳細など)
-│   ├── admin/           # 管理画面用ページ
-│   ├── api/             # API Routes
-│   ├── login/           # ログインページ
-│   └── ...
-├── lib/                 # ユーティリティ (Prisma clientなど)
-├── generated/           # 生成されたPrisma Client
-└── ...
-prisma/
-├── schema.prisma        # データベーススキーマ定義
-└── seed.ts              # 初期データ投入スクリプト
-```
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
