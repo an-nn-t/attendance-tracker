@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma'; // 既存のPrismaクライアントを読み込みます
+import { prisma } from '@/lib/prisma'; // ← ここを {} で囲む形に修正しました！
 
 export default async function Home() {
   // データベースからユーザー一覧とそれぞれの欠席記録を取得
