@@ -1,28 +1,49 @@
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
-import { signToken } from "@/lib/auth"
+// src/app/api/auth/login/route.ts
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcrypt'; // もしビルドエラーが出た場合は 'bcryptjs' を使用してください
+import { signToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
-export async function POST(req: Request) {
-  const { attendanceNo, password } = await req.json()
+export async function POST(request: Request) {
+  try {
+    const { attendanceNo, password } = await request.json();
 
-  const user = await prisma.user.findUnique({
-    where: { attendanceNo }
-  })
+    // ユーザー検索
+    const user = await prisma.user.findUnique({
+      where: { attendanceNo: Number(attendanceNo) },
+    });
 
-  if (!user) {
-    return Response.json({ error: "User not found" }, { status: 401 })
+    if (!user) {
+      return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 });
+    }
+
+    // パスワード照合
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: 'パスワードが間違っています' }, { status: 401 });
+    }
+
+    // JWT生成
+    const token = signToken({
+      userId: user.id,
+      attendanceNo: user.attendanceNo,
+      role: user.role,
+    });
+
+    // Cookieにセット
+    const cookieStore = await cookies();
+    cookieStore.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7日間
+      path: '/',
+    });
+
+    return NextResponse.json({ success: true, role: user.role });
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
   }
-
-  const isValid = await bcrypt.compare(password, user.password)
-
-  if (!isValid) {
-    return Response.json({ error: "Invalid password" }, { status: 401 })
-  }
-
-  const token = signToken({
-    id: user.id,
-    role: user.role
-  })
-
-  return Response.json({ token })
 }
