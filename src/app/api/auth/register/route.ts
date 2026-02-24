@@ -5,9 +5,11 @@ import { NextResponse } from "next/server"
 export async function POST(req: Request) {
   try {
     const { attendanceNo, nickname, email, password } = await req.json()
+    console.log('Register request:', { attendanceNo, nickname, email })
 
     // バリデーション
     if (!attendanceNo || !nickname || !email || !password) {
+      console.log('Validation failed:', { attendanceNo, nickname, email, password })
       return NextResponse.json(
         { error: '必須項目が不足しています' },
         { status: 400 }
@@ -27,14 +29,35 @@ export async function POST(req: Request) {
     }
 
     // Supabaseで認証ユーザーを作成
+    console.log('Creating Supabase user:', email)
     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
       email,
       password,
     })
 
-    if (authError || !authData.user) {
+    console.log('Supabase response:', { authError: authError?.message, user: authData.user?.id })
+
+    if (authError) {
+      console.error('Supabase error:', authError)
+      
+      // レート制限エラーを返す
+      if (authError.message?.includes('rate limit') || authError.message?.includes('Too many')) {
+        return NextResponse.json(
+          { error: 'メール送信がレート制限されています。しばらく時間をおいて再度お試しください。' },
+          { status: 429 }
+        )
+      }
+      
+      // その他のエラーを返す
       return NextResponse.json(
-        { error: authError?.message || 'ユーザー作成に失敗しました' },
+        { error: authError.message || 'ユーザー作成に失敗しました' },
+        { status: 400 }
+      )
+    }
+
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: 'ユーザー作成に失敗しました' },
         { status: 400 }
       )
     }

@@ -13,6 +13,7 @@ export default function RegisterPage() {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -48,14 +49,26 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'ユーザー登録に失敗しました');
+        // エラーメッセージを詳細に表示
+        if (res.status === 429) {
+          setError('メール送信がレート制限されています。しばらく時間をおいて再度お試しください。');
+        } else {
+          setError(data.error || 'ユーザー登録に失敗しました');
+        }
+        setLoading(false);
+        return;
       }
 
-      // ログインページへリダイレクト
-      router.push('/login?registered=true');
+      // 成功メッセージを表示
+      setSuccess('ユーザー登録が完了しました。ログインしてください。');
+      setError('');
+      
+      // 2秒後にログインページへリダイレクト
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     } catch (err: any) {
-      setError(err.message);
-    } finally {
+      setError(err.message || 'エラーが発生しました');
       setLoading(false);
     }
   };
@@ -65,7 +78,8 @@ export default function RegisterPage() {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-slate-200">
         <h1 className="text-2xl font-bold mb-6 text-center text-slate-800">ユーザー登録</h1>
         
-        {error && <div className="bg-red-50 text-red-500 text-sm p-3 rounded mb-4">{error}</div>}
+        {success && <div className="bg-green-50 text-green-600 text-sm p-3 rounded mb-4">{success}</div>}
+        {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded mb-4">{error}</div>}
         
         <form onSubmit={handleRegister} className="space-y-4">
           <div>

@@ -7,11 +7,18 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
   try {
     const { email, password, attendanceNo } = await request.json();
+    console.log('Login request:', { email, attendanceNo });
 
     // Supabaseで認証
+    console.log('Authenticating with Supabase...');
     const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
       email,
       password,
+    });
+
+    console.log('Supabase auth response:', { 
+      error: authError?.message, 
+      hasSession: !!authData.session 
     });
 
     if (authError || !authData.session) {
@@ -22,9 +29,12 @@ export async function POST(request: Request) {
     }
 
     // 出席番号でユーザーを検索
+    console.log('Looking up user by attendanceNo:', attendanceNo);
     const user = await prisma.user.findUnique({
       where: { attendanceNo: Number(attendanceNo) },
     });
+
+    console.log('User lookup result:', { found: !!user, role: user?.role });
 
     if (!user) {
       return NextResponse.json(
