@@ -12,15 +12,23 @@ interface User {
 export default function Home() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await fetch('/api/users');
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
         const data = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid response format');
+        }
         setUsers(data);
       } catch (error) {
         console.error('Failed to fetch users:', error);
+        setError(error instanceof Error ? error.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -36,6 +44,8 @@ export default function Home() {
         <div className="bg-white rounded-lg shadow-md p-6">
           {loading ? (
             <p className="text-center text-gray-500">読み込み中...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">エラー: {error}</p>
           ) : users.length === 0 ? (
             <p className="text-center text-gray-500">データがありません</p>
           ) : (
