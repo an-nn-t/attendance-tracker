@@ -1,15 +1,32 @@
-import { prisma } from '@/lib/prisma'; // ← ここを {} で囲む形に修正しました！
+'use client';
 
-export default async function Home() {
-  // データベースからユーザー一覧とそれぞれの欠席記録を取得
-  const users = await prisma.user.findMany({
-    include: {
-      attendances: {
-        where: { isDeleted: false } // 取消されていない欠席のみ
-      },
-    },
-    orderBy: { attendanceNo: 'asc' } // 出席番号順に並べる
-  });
+import { useEffect, useState } from 'react';
+
+interface User {
+  id: string;
+  attendanceNo: number;
+  nickname: string;
+  attendances: { id: string }[];
+}
+
+export default function Home() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   return (
     <main className="min-h-screen p-8 bg-gray-50 text-gray-800">
@@ -17,7 +34,9 @@ export default async function Home() {
         <h1 className="text-3xl font-bold mb-6 text-center">クラス出席状況ボード</h1>
         
         <div className="bg-white rounded-lg shadow-md p-6">
-          {users.length === 0 ? (
+          {loading ? (
+            <p className="text-center text-gray-500">読み込み中...</p>
+          ) : users.length === 0 ? (
             <p className="text-center text-gray-500">データがありません</p>
           ) : (
             <ul className="space-y-4">
