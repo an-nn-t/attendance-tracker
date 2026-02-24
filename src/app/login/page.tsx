@@ -2,11 +2,13 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const [attendanceNo, setAttendanceNo] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [attendanceNo, setAttendanceNo] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -20,7 +22,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attendanceNo, password }),
+        body: JSON.stringify({ email, password, attendanceNo }),
       });
 
       const data = await res.json();
@@ -51,13 +53,13 @@ export default function LoginPage() {
         
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">出席番号</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">メールアドレス</label>
             <input
-              type="number"
-              value={attendanceNo}
-              onChange={(e) => setAttendanceNo(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
-              placeholder="例: 1"
+              placeholder="example@email.com"
               required
             />
           </div>
@@ -71,6 +73,17 @@ export default function LoginPage() {
               required
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">出席番号</label>
+            <input
+              type="number"
+              value={attendanceNo}
+              onChange={(e) => setAttendanceNo(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
+              placeholder="例: 1"
+              required
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}
@@ -79,6 +92,13 @@ export default function LoginPage() {
             {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
+
+        <div className="mt-4 text-center text-sm text-slate-600">
+          アカウントをお持ちでないですか？{' '}
+          <Link href="/register" className="text-slate-800 font-medium hover:underline">
+            登録
+          </Link>
+        </div>
       </div>
     </div>
   );

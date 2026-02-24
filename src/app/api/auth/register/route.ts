@@ -1,20 +1,77 @@
 import { prisma } from "@/lib/prisma"
-import bcryptjs from "bcryptjs"
+import { supabaseClient } from "@/lib/supabase"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
-  const { attendanceNo, nickname, password } = await req.json()
+  try {
+    const { attendanceNo, nickname, email, password } = await req.json()
 
-  const hashed = await bcryptjs.hash(password, 10)
+    // バリデーション
+    if (!attendanceNo || !nickname || !email || !password) {
+      return NextResponse.json(
+        { error: '必須項目が不足しています' },
+        { status: 400 }
+      )
+    }
 
-  const user = await prisma.user.create({
-    data: {
-      attendanceNo,
-      nickname,
-      password: hashed,
-      role: "STUDENT", // ← 学生固定でOK
-    },
-  })
+    // 出席番号の重複チェック
+    const existingUser = await prisma.user.findUnique({
+      where: { attendanceNo: Number(attendanceNo) },
+    })
 
-  return NextResponse.json(user)
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'この出席番号は既に登録されています' },
+        { status: 400 }
+      )
+    }
+
+    // Supabaseで認証ユーザーを作成
+    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+      email,
+      password,
+    })
+
+    if (authError || !authData.user) {
+      return NextResponse.json(
+        { error: authError?.message || 'ユーザー作成に失敗しました' },
+        { status: 400 }
+      )
+    }
+
+    // Prismaでユーザーレコードを作成
+    const user = await prisma.user.create({
+      data: {
+        attendanceNo: Number(attendanceNo),
+        nickname,
+        password, // プレーンテキストで保存（Supabaseで管理）
+        role: "STUDENT",
+      },
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'ユーザー登録が完了しました。ログインしてください。',
+      user: {
+        id: user.id,
+        attendanceNo: user.attendanceNo,
+        nickname: user.nickname,
+      },
+    })
+  } catch (error: any) {
+    console.error('Registration error:', error)
+    
+    // 出席番号が既に登録されている場合
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'この出席番号は既に登録されています' },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: error.message || 'ユーザー登録に失敗しました' },
+      { status: 500 }
+    )
+  }
 }

@@ -1,39 +1,41 @@
 // src/app/api/auth/login/route.ts
 import { NextResponse } from 'next/server';
+import { supabaseClient } from '@/lib/supabase';
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcrypt'; // もしビルドエラーが出た場合は 'bcryptjs' を使用してください
-import { signToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const { attendanceNo, password } = await request.json();
+    const { email, password, attendanceNo } = await request.json();
 
-    // ユーザー検索
+    // Supabaseで認証
+    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.session) {
+      return NextResponse.json(
+        { error: authError?.message || 'ログインに失敗しました' },
+        { status: 401 }
+      );
+    }
+
+    // 出席番号でユーザーを検索
     const user = await prisma.user.findUnique({
       where: { attendanceNo: Number(attendanceNo) },
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'ユーザーが見つかりません' },
+        { status: 404 }
+      );
     }
 
-    // パスワード照合
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return NextResponse.json({ error: 'パスワードが間違っています' }, { status: 401 });
-    }
-
-    // JWT生成
-    const token = signToken({
-      userId: user.id,
-      attendanceNo: user.attendanceNo,
-      role: user.role,
-    });
-
-    // Cookieにセット
+    // セッショントークンをCookieにセット
     const cookieStore = await cookies();
-    cookieStore.set('token', token, {
+    cookieStore.set('supabase-auth-token', authData.session.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -41,9 +43,20 @@ export async function POST(request: Request) {
       path: '/',
     });
 
-    return NextResponse.json({ success: true, role: user.role });
+    return NextResponse.json({
+      success: true,
+      role: user.role,
+      user: {
+        id: user.id,
+        attendanceNo: user.attendanceNo,
+        nickname: user.nickname,
+      },
+    });
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'サーバーエラーが発生しました' },
+      { status: 500 }
+    );
   }
 }
