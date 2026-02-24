@@ -10,7 +10,7 @@
 「シラバスの複雑な評価基準や欠席上限の計算を自動化し、視覚的に警告を出してくれるシステムがあれば、留年や落単のリスクを未然に防げるのではないか？」と考えたのが本アプリ開発のきっかけです。また、クラス全体で状況を共有することで、互いに助け合う雰囲気を作りたいという思いも込めています。
 
 ## 公開URL
-https://attendance-tracker-ar6yvvfa1-an-nn-ts-projects.vercel.app/
+https://attendance-tracker-three-pi.vercel.app/
 
 ## 特徴と機能の説明
 
