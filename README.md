@@ -18,12 +18,14 @@ https://attendance-tracker-three-pi.vercel.app/
 - クラス全員の「あと何回休めるか（欠席余裕回数）」を一覧表示します。
 - プライバシーに配慮し、本名ではなく「出席番号」や「ニックネーム」で表示。
 - **工夫点**: 「あと休める回数が2回以下」になった生徒を画面最上部に目立つようにハイライト表示し、クラスメイト同士のサポートを促します。
+![alt text](<img/スクリーンショット (476).png>)
 ![画像](<img/スクリーンショット (473).png>)
 
 ### 2. 【個人ダッシュボード】単位取得のための逆算機能（要ログイン）
 - 出席番号とパスワードでログインし、自分自身の詳細な記録を管理します。
 - **成績逆算**: 現在のテスト点数と平常点（自己評価）を入力すると、「総合60点をクリアするために、次回のテストで何点必要か」を自動計算して提示します。
 - **留年アラート**: 特定の科目で欠席上限が近づいた場合（残り3回以下）や、落単確定の科目が合計「7単位」以上になった場合に重大な警告を表示します。
+![alt text](<img/スクリーンショット 2026-02-24 155936.png>)
 
 
 ### 3. 【管理者機能】柔軟なシラバス・時間割対応
@@ -55,6 +57,35 @@ https://attendance-tracker-three-pi.vercel.app/
 
 ## システム構成図
 
+```
+mermaid
+graph TD
+    %% ユーザー
+    User((ユーザー\n(学生/教員)))
+
+    %% ホスティング / フロント＆バックエンド
+    subgraph Vercel ["Vercel (Hosting)"]
+        subgraph NextJS ["Next.js Application"]
+            UI["Frontend\n(React / App Router)"]
+            API["Backend\n(API Routes / Server Actions)"]
+            ORM["Prisma Client\n(ORM)"]
+            
+            UI <-->|Fetch / Actions| API
+            API <-->|Query| ORM
+        end
+    end
+
+    %% データベース / 認証
+    subgraph SupabasePlatform ["Supabase Platform"]
+        DB[("PostgreSQL\n(Database)")]
+        Auth["Supabase Auth\n(認証)"]
+    end
+
+    %% 通信のフロー
+    User <-->|HTTP/HTTPS| UI
+    User -.->|ログイン/セッション| Auth
+    ORM <-->|Connection| DB
+```
 
 ## 開発期間・体制
 - **開発体制**: 個人開発
