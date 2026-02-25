@@ -1,71 +1,69 @@
 // src/app/api/auth/login/route.ts
 import { NextResponse } from 'next/server';
-import { supabaseClient } from '@/lib/supabase';
 import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { email, password, attendanceNo } = await request.json();
-    console.log('Login request:', { email, attendanceNo });
+    const { attendanceNo, password } = await request.json();
 
-    // Supabaseで認証
-    console.log('Authenticating with Supabase...');
-    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    console.log('Supabase auth response:', { 
-      error: authError?.message, 
-      hasSession: !!authData.session 
-    });
-
-    if (authError || !authData.session) {
+    if (!attendanceNo || !password) {
       return NextResponse.json(
-        { error: authError?.message || 'ログインに失敗しました' },
-        { status: 401 }
+        { message: '出席番号とパスワードは必須です' },
+        { status: 400 }
       );
     }
 
-    // 出席番号でユーザーを検索
-    console.log('Looking up user by attendanceNo:', attendanceNo);
+    // ✅ Prisma でユーザーを検索
     const user = await prisma.user.findUnique({
       where: { attendanceNo: Number(attendanceNo) },
     });
 
-    console.log('User lookup result:', { found: !!user, role: user?.role });
-
     if (!user) {
       return NextResponse.json(
-        { error: 'ユーザーが見つかりません' },
-        { status: 404 }
+        { message: '出席番号またはパスワードが正しくありません' },
+        { status: 401 }
       );
     }
 
-    // セッショントークンをCookieにセット
-    const cookieStore = await cookies();
-    cookieStore.set('supabase-auth-token', authData.session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7日間
-      path: '/',
+    // ✅ Supabase Auth でログイン
+    const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+      email: user.email,
+      password,
     });
 
-    return NextResponse.json({
-      success: true,
-      role: user.role,
-      user: {
-        id: user.id,
-        attendanceNo: user.attendanceNo,
-        nickname: user.nickname,
+    if (error || !data.session) {
+      return NextResponse.json(
+        { message: 'ログイン処理に失敗しました' },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        user: {
+          id: user.id,
+          attendanceNo: user.attendanceNo,
+          nickname: user.nickname,
+        },
+        role: user.role,
       },
-    });
+      {
+        status: 200,
+        headers: {
+          'Set-Cookie': [
+            `access_token=${data.session.access_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${data.session.expires_in}`,
+            `refresh_token=${data.session.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`,
+          ].join(', '),
+        },
+      }
+    );
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
+      { message: 'ログイン処理に失敗しました' },
       { status: 500 }
     );
   }

@@ -3,8 +3,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
+
+  // ✅ Cookie からトークン取得
+  const token = request.cookies.get('authToken')?.value;
 
   // 保護されたルート（ダッシュボード等）へのアクセス制限
   if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin')) {

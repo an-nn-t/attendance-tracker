@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 ////////////////////////////////////
@@ -26,6 +27,7 @@ enum AdjustmentType {
 
 model User {
   id             String   @id @default(uuid())
+  email          String   @unique
 
   attendanceNo   Int      @unique   // 出席番号（ログインID）
   nickname       String
