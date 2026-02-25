@@ -57,18 +57,17 @@ https://attendance-tracker-three-pi.vercel.app/
 
 ## システム構成図
 
-```
-mermaid
+```mermaid
 graph TD
     %% ユーザー
-    User((ユーザー\n(学生/教員)))
+    User(("ユーザー<br/>(学生/教員)"))
 
     %% ホスティング / フロント＆バックエンド
     subgraph Vercel ["Vercel (Hosting)"]
         subgraph NextJS ["Next.js Application"]
-            UI["Frontend\n(React / App Router)"]
-            API["Backend\n(API Routes / Server Actions)"]
-            ORM["Prisma Client\n(ORM)"]
+            UI["Frontend<br/>(React / App Router)"]
+            API["Backend<br/>(API Routes / Server Actions)"]
+            ORM["Prisma Client<br/>(ORM)"]
             
             UI <-->|Fetch / Actions| API
             API <-->|Query| ORM
@@ -77,8 +76,8 @@ graph TD
 
     %% データベース / 認証
     subgraph SupabasePlatform ["Supabase Platform"]
-        DB[("PostgreSQL\n(Database)")]
-        Auth["Supabase Auth\n(認証)"]
+        DB[("PostgreSQL<br/>(Database)")]
+        Auth["Supabase Auth<br/>(認証)"]
     end
 
     %% 通信のフロー
