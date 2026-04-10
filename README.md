@@ -1,4 +1,4 @@
-# Attendance & Grade Tracker (クラス出席・成績管理アプリ)
+# Attendance & Grade Tracker（クラス出席・成績管理アプリ）
 
 学生が自身の欠席日数と成績を正確に把握し、計画的な単位取得をサポートするためのウェブアプリケーションです。
 
